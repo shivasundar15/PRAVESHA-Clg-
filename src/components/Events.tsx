@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Terminal, Lightbulb, Gamepad2, Users, MonitorPlay, BrainCog, Presentation, Music, Ticket, ArrowRight, X, CheckCircle2, ExternalLink } from 'lucide-react';
+
+gsap.registerPlugin(ScrollTrigger);
 
 type Event = {
   title: string;
@@ -130,38 +133,30 @@ const nonTechnicalEvents: Event[] = [
 // Modal
 const EventModal = ({ event, onClose }: { event: Event; onClose: () => void }) => {
   const Icon = event.icon;
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: 'power2.out' });
+    gsap.fromTo(boxRef.current, { opacity: 0, scale: 0.9, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'back.out(1.4)' });
+  }, []);
+
+  const handleClose = () => {
+    gsap.to(overlayRef.current, { opacity: 0, duration: 0.15, onComplete: onClose });
+  };
+
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        style={{
-          position: 'fixed', inset: 0, zIndex: 100,
-          background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '1.5rem',
-        }}
+    <div ref={overlayRef} onClick={handleClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}
+    >
+      <div ref={boxRef} onClick={e => e.stopPropagation()} className="glass-panel"
+        style={{ width: '100%', maxWidth: '560px', maxHeight: '88vh', overflowY: 'auto', padding: '2.5rem', borderColor: `${event.color}40`, position: 'relative' }}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 30 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          onClick={e => e.stopPropagation()}
-          className="glass-panel"
-          style={{
-            width: '100%', maxWidth: '560px', maxHeight: '88vh',
-            overflowY: 'auto', padding: '2.5rem',
-            borderColor: `${event.color}40`, position: 'relative',
-          }}
-        >
           {/* Top accent */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, transparent, ${event.color}, transparent)`, borderRadius: '16px 16px 0 0' }} />
 
           {/* Close */}
-          <button onClick={onClose} style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex' }}>
+          <button onClick={handleClose} style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex' }}>
             <X size={18} />
           </button>
 
@@ -215,25 +210,31 @@ const EventModal = ({ event, onClose }: { event: Event; onClose: () => void }) =
           >
             <ExternalLink size={16} /> Register for {event.title}
           </a>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        </div>
+    </div>
   );
 };
 
 // Card
 const EventCard = ({ event, index, badge, onOpen }: { event: Event; index: number; badge: string; onOpen: () => void }) => {
   const Icon = event.icon;
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!cardRef.current) return;
+    gsap.fromTo(cardRef.current,
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.5, delay: index * 0.08, ease: 'power3.out',
+        scrollTrigger: { trigger: cardRef.current, start: 'top 88%', once: true } }
+    );
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.08, duration: 0.5 }}
-      whileHover={{ y: -8, transition: { duration: 0.2 } }}
-      className="glass-panel"
-      style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', cursor: 'pointer', position: 'relative', overflow: 'hidden', borderColor: `${event.color}22` }}
+    <div ref={cardRef} className="glass-panel"
+      style={{ opacity: 0, padding: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', cursor: 'pointer', position: 'relative', overflow: 'hidden', borderColor: `${event.color}22`, transition: 'transform 0.2s' }}
       onClick={onOpen}
+      onMouseEnter={e => gsap.to(e.currentTarget, { y: -8, duration: 0.2 })}
+      onMouseLeave={e => gsap.to(e.currentTarget, { y: 0, duration: 0.2 })}
     >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, transparent, ${event.color}, transparent)` }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -247,17 +248,27 @@ const EventCard = ({ event, index, badge, onOpen }: { event: Event; index: numbe
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: event.color, fontSize: '0.85rem', fontWeight: 600, marginTop: '0.5rem', fontFamily: 'Orbitron' }}>
         View Details <ArrowRight size={14} />
       </div>
-    </motion.div>
+    </div>
   );
 };
 
 const Events: React.FC = () => {
   const [selected, setSelected] = useState<Event | null>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!headerRef.current) return;
+    gsap.fromTo(headerRef.current,
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out',
+        scrollTrigger: { trigger: headerRef.current, start: 'top 85%', once: true } }
+    );
+  }, []);
 
   return (
     <section id="events" style={{ padding: '4rem 0', position: 'relative' }}>
       <div className="container">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: '4rem' }}>
+        <div ref={headerRef} style={{ opacity: 0, textAlign: 'center', marginBottom: '4rem' }}>
           <span className="section-tag">WHAT'S IN STORE</span>
           <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', color: 'white', marginBottom: '1.5rem' }}>
             EVENTS <span style={{ color: 'var(--neon-red)' }}>ARENA</span>
@@ -278,7 +289,7 @@ const Events: React.FC = () => {
               <span style={{ color: 'var(--neon-blue)', fontWeight: 700, fontFamily: 'Orbitron', fontSize: '0.9rem' }}>Register Before MARCH 26</span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         <div style={{ marginBottom: '5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>

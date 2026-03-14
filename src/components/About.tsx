@@ -1,6 +1,9 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MapPin, Users, Trophy, Cpu, GraduationCap, Globe } from 'lucide-react';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const stats = [
   { icon: Trophy, value: '9+', label: 'Events', color: 'var(--neon-red)' },
@@ -16,77 +19,113 @@ const highlights = [
   { icon: Globe, title: 'Open to All', desc: 'Open to students from all colleges across India. Register before March 26 to secure your spot.' },
 ];
 
-const About: React.FC = () => (
-  <section id="about" style={{ padding: '5rem 0', position: 'relative' }}>
-    <div className="container">
+const About: React.FC = () => {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const highlightsRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-        <span className="section-tag">ABOUT THE EVENT</span>
-        <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: 'white', marginBottom: '1rem' }}>
-          WHAT IS <span style={{ color: 'var(--neon-red)' }}>PRAVESHA?</span>
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', maxWidth: '680px', margin: '0 auto', lineHeight: 1.8 }}>
-          PRAVESHA 2K26 is a <span style={{ color: 'white', fontWeight: 600 }}>National Level Technical Symposium</span> organized by the
-          Department of Computer Science and Engineering, VELS VISTAS. It brings together the brightest minds
-          from engineering colleges across India to compete, collaborate, and celebrate technology.
-        </p>
-      </motion.div>
+  useEffect(() => {
+    const fadeUp = (el: Element | null, delay = 0) => {
+      if (!el) return;
+      gsap.fromTo(el,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.6, delay, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 85%', once: true } }
+      );
+    };
 
-      {/* Stats row */}
-      <div className="stats-grid" style={{ marginBottom: '3.5rem' }}>
-        {stats.map(({ icon: Icon, value, label, color }, i) => (
-          <motion.div key={label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-            className="glass-panel" style={{ padding: '1.75rem', textAlign: 'center', borderColor: `${color}30` }}
-          >
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: `${color}15`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color }}>
-              <Icon size={24} />
-            </div>
-            <div style={{ fontFamily: 'Orbitron', fontWeight: 900, fontSize: '2rem', color, lineHeight: 1 }}>{value}</div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.4rem', letterSpacing: '1px' }}>{label}</div>
-          </motion.div>
-        ))}
-      </div>
+    fadeUp(headerRef.current);
 
-      {/* Highlights grid */}
-      <div className="highlights-grid">
-        {highlights.map(({ icon: Icon, title, desc }, i) => (
-          <motion.div key={title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-            className="glass-panel" style={{ padding: '2rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}
-          >
-            <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,42,42,0.1)', border: '1px solid rgba(255,42,42,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--neon-red)', flexShrink: 0 }}>
-              <Icon size={22} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '1.05rem', marginBottom: '0.5rem', color: 'white' }}>{title}</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.7, margin: 0 }}>{desc}</p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+    // Stagger stat cards
+    if (statsRef.current) {
+      gsap.fromTo(statsRef.current.children,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power3.out',
+          scrollTrigger: { trigger: statsRef.current, start: 'top 85%', once: true } }
+      );
+    }
 
-      {/* College info banner */}
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-        className="glass-panel" style={{ marginTop: '3rem', padding: '2rem 2.5rem', borderColor: 'rgba(0,212,255,0.2)', display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'center', justifyContent: 'space-between' }}
-      >
-        <div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--neon-blue)', letterSpacing: '3px', marginBottom: '0.4rem' }}>ORGANISED BY</div>
-          <div style={{ fontFamily: 'Orbitron', fontWeight: 700, fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', color: 'white' }}>Dept. of Computer Science & Engineering</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>VELS Institute of Science, Technology & Advanced Studies (VISTAS)</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Pallavaram, Thalambur, Periyapalayam — Chennai</div>
+    // Stagger highlight cards
+    if (highlightsRef.current) {
+      gsap.fromTo(highlightsRef.current.children,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power3.out',
+          scrollTrigger: { trigger: highlightsRef.current, start: 'top 85%', once: true } }
+      );
+    }
+
+    fadeUp(bannerRef.current);
+  }, []);
+
+  return (
+    <section id="about" style={{ padding: '5rem 0', position: 'relative' }}>
+      <div className="container">
+
+        {/* Header */}
+        <div ref={headerRef} style={{ opacity: 0, textAlign: 'center', marginBottom: '3.5rem' }}>
+          <span className="section-tag">ABOUT THE EVENT</span>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: 'white', marginBottom: '1rem' }}>
+            WHAT IS <span style={{ color: 'var(--neon-red)' }}>PRAVESHA?</span>
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', maxWidth: '680px', margin: '0 auto', lineHeight: 1.8 }}>
+            PRAVESHA 2K26 is a <span style={{ color: 'white', fontWeight: 600 }}>National Level Technical Symposium</span> organized by the
+            Department of Computer Science and Engineering, VELS VISTAS. It brings together the brightest minds
+            from engineering colleges across India to compete, collaborate, and celebrate technology.
+          </p>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div className="pulse-dot" />
-            <span style={{ fontFamily: 'Orbitron', fontSize: '0.85rem', color: 'var(--neon-red)' }}>APRIL 09, 2026</span>
+
+        {/* Stats */}
+        <div ref={statsRef} className="stats-grid" style={{ marginBottom: '3.5rem' }}>
+          {stats.map(({ icon: Icon, value, label, color }) => (
+            <div key={label} className="glass-panel" style={{ opacity: 0, padding: '1.75rem', textAlign: 'center', borderColor: `${color}30` }}>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: `${color}15`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color }}>
+                <Icon size={24} />
+              </div>
+              <div style={{ fontFamily: 'Orbitron', fontWeight: 900, fontSize: '2rem', color, lineHeight: 1 }}>{value}</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.4rem', letterSpacing: '1px' }}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Highlights */}
+        <div ref={highlightsRef} className="highlights-grid">
+          {highlights.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="glass-panel" style={{ opacity: 0, padding: '2rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,42,42,0.1)', border: '1px solid rgba(255,42,42,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--neon-red)', flexShrink: 0 }}>
+                <Icon size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', marginBottom: '0.5rem', color: 'white' }}>{title}</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.7, margin: 0 }}>{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Banner */}
+        <div ref={bannerRef} className="glass-panel"
+          style={{ opacity: 0, marginTop: '3rem', padding: '2rem 2.5rem', borderColor: 'rgba(0,212,255,0.2)', display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'center', justifyContent: 'space-between' }}
+        >
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--neon-blue)', letterSpacing: '3px', marginBottom: '0.4rem' }}>ORGANISED BY</div>
+            <div style={{ fontFamily: 'Orbitron', fontWeight: 700, fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', color: 'white' }}>Dept. of Computer Science & Engineering</div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>VELS Institute of Science, Technology & Advanced Studies (VISTAS)</div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Pallavaram, Thalambur, Periyapalayam — Chennai</div>
           </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Register before <span style={{ color: 'var(--neon-blue)', fontWeight: 600 }}>March 26</span></div>
-          <a href="mailto:pravesha2k26@gmail.com" style={{ fontSize: '0.82rem', color: 'var(--neon-blue)' }}>pravesha2k26@gmail.com</a>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="pulse-dot" />
+              <span style={{ fontFamily: 'Orbitron', fontSize: '0.85rem', color: 'var(--neon-red)' }}>APRIL 09, 2026</span>
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Register before <span style={{ color: 'var(--neon-blue)', fontWeight: 600 }}>March 26</span></div>
+            <a href="mailto:pravesha2k26@gmail.com" style={{ fontSize: '0.82rem', color: 'var(--neon-blue)' }}>pravesha2k26@gmail.com</a>
+          </div>
         </div>
-      </motion.div>
 
-    </div>
-  </section>
-);
+      </div>
+    </section>
+  );
+};
 
 export default About;

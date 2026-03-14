@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { GraduationCap, UserCircle, Phone } from 'lucide-react';
-import { motion } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const staffCoordinators = [
   { name: 'Dr. A. Rajesh', phone: '9750222225' },
@@ -18,34 +21,20 @@ const studentCoordinators = [
 ];
 
 const PersonRow = ({ name, phone, color }: { name: string; phone: string; color: string }) => (
-  <div style={{
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '0.9rem 1rem', borderRadius: '10px',
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.06)',
-    transition: 'background 0.2s',
-  }}
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', transition: 'background 0.2s' }}
     onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
     onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
   >
     <span style={{ fontSize: '1rem', fontWeight: 600 }}>{name}</span>
-    <a href={`tel:${phone}`} style={{
-      display: 'flex', alignItems: 'center', gap: '0.4rem',
-      color: color, fontFamily: 'Orbitron', fontSize: '0.8rem', letterSpacing: '1px',
-    }}>
+    <a href={`tel:${phone}`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color, fontFamily: 'Orbitron', fontSize: '0.8rem', letterSpacing: '1px' }}>
       <Phone size={13} /> {phone}
     </a>
   </div>
 );
 
-const CoordCard = ({ title, icon: Icon, color, people, delay }: any) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay, duration: 0.5 }}
-    className="glass-panel"
-    style={{ padding: '2.5rem', borderColor: `${color}22`, position: 'relative', overflow: 'hidden' }}
+const CoordCard = ({ title, icon: Icon, color, people, cardRef }: any) => (
+  <div ref={cardRef} className="glass-panel"
+    style={{ opacity: 0, padding: '2.5rem', borderColor: `${color}22`, position: 'relative', overflow: 'hidden' }}
   >
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem' }}>
@@ -57,26 +46,42 @@ const CoordCard = ({ title, icon: Icon, color, people, delay }: any) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
       {people.map((p: any) => <PersonRow key={p.name} {...p} color={color} />)}
     </div>
-  </motion.div>
+  </div>
 );
 
-const Coordinators: React.FC = () => (
-  <section id="coordinators" style={{ padding: '4rem 0', position: 'relative' }}>
-    <div className="container">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <span className="section-tag">REACH OUT</span>
-        <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', color: 'white', marginBottom: '0.75rem' }}>
-          COMMAND <span style={{ color: 'var(--neon-blue)' }}>CENTER</span>
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem' }}>Get in touch with our coordinators for any queries.</p>
-      </motion.div>
+const Coordinators: React.FC = () => {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const card1Ref = useRef<HTMLDivElement>(null);
+  const card2Ref = useRef<HTMLDivElement>(null);
 
-      <div className="coords-grid">
-        <CoordCard title="STAFF COORDINATORS" icon={GraduationCap} color="var(--neon-red)" people={staffCoordinators} delay={0} />
-        <CoordCard title="STUDENT COORDINATORS" icon={UserCircle} color="var(--neon-blue)" people={studentCoordinators} delay={0.15} />
+  useEffect(() => {
+    [headerRef, card1Ref, card2Ref].forEach((ref, i) => {
+      if (!ref.current) return;
+      gsap.fromTo(ref.current,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.6, delay: i * 0.15, ease: 'power3.out',
+          scrollTrigger: { trigger: ref.current, start: 'top 85%', once: true } }
+      );
+    });
+  }, []);
+
+  return (
+    <section id="coordinators" style={{ padding: '4rem 0', position: 'relative' }}>
+      <div className="container">
+        <div ref={headerRef} style={{ opacity: 0, textAlign: 'center', marginBottom: '4rem' }}>
+          <span className="section-tag">REACH OUT</span>
+          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', color: 'white', marginBottom: '0.75rem' }}>
+            COMMAND <span style={{ color: 'var(--neon-blue)' }}>CENTER</span>
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem' }}>Get in touch with our coordinators for any queries.</p>
+        </div>
+        <div className="coords-grid">
+          <CoordCard title="STAFF COORDINATORS" icon={GraduationCap} color="var(--neon-red)" people={staffCoordinators} cardRef={card1Ref} />
+          <CoordCard title="STUDENT COORDINATORS" icon={UserCircle} color="var(--neon-blue)" people={studentCoordinators} cardRef={card2Ref} />
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default Coordinators;

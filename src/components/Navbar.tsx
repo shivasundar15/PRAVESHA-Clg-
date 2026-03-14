@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
 
 const links = [
   { label: 'Home', href: '#home' },
@@ -13,6 +13,24 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState('#home');
+  const navRef = useRef<HTMLElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Entrance animation
+  useEffect(() => {
+    gsap.fromTo(navRef.current, { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' });
+  }, []);
+
+  // Mobile menu open/close animation
+  useEffect(() => {
+    const el = mobileMenuRef.current;
+    if (!el) return;
+    if (isOpen) {
+      gsap.fromTo(el, { opacity: 0, y: -10, scale: 0.97, display: 'flex' }, { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: 'power2.out' });
+    } else {
+      gsap.to(el, { opacity: 0, y: -10, scale: 0.97, duration: 0.15, ease: 'power2.in' });
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -21,26 +39,15 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <motion.nav
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+    <nav
+      ref={navRef}
       className="glass-panel"
       style={{
-        position: 'fixed',
-        top: '1rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '92%',
-        maxWidth: '1200px',
-        zIndex: 50,
-        padding: '0.75rem 1.25rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: scrolled
-          ? '0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,42,42,0.1)'
-          : '0 8px 32px rgba(0,0,0,0.4)',
+        position: 'fixed', top: '1rem', left: '50%', transform: 'translateX(-50%)',
+        width: '92%', maxWidth: '1200px', zIndex: 50,
+        padding: '0.75rem 1.25rem', display: 'flex',
+        justifyContent: 'space-between', alignItems: 'center',
+        boxShadow: scrolled ? '0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,42,42,0.1)' : '0 8px 32px rgba(0,0,0,0.4)',
         transition: 'box-shadow 0.3s ease',
       }}
     >
@@ -53,32 +60,20 @@ const Navbar: React.FC = () => {
       {/* Desktop Links */}
       <div style={{ display: 'none', gap: '0.25rem', alignItems: 'center' }} className="desktop-nav">
         {links.map(link => (
-          <a
-            key={link.href}
-            href={link.href}
-            onClick={() => setActive(link.href)}
+          <a key={link.href} href={link.href} onClick={() => setActive(link.href)}
             style={{
               color: active === link.href ? 'var(--neon-blue)' : 'var(--text-secondary)',
-              fontWeight: 600,
-              fontSize: '0.95rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              background: active === link.href ? 'rgba(0,212,255,0.08)' : 'transparent',
-              transition: 'all 0.2s',
-              letterSpacing: '0.5px',
+              fontWeight: 600, fontSize: '0.95rem', padding: '0.5rem 1rem',
+              borderRadius: '8px', background: active === link.href ? 'rgba(0,212,255,0.08)' : 'transparent',
+              transition: 'all 0.2s', letterSpacing: '0.5px',
             }}
-          >
-            {link.label}
-          </a>
+          >{link.label}</a>
         ))}
-        <button className="btn btn-primary" style={{ marginLeft: '1rem', padding: '0.6rem 1.4rem' }}>
-          Register
-        </button>
+        <button className="btn btn-primary" style={{ marginLeft: '1rem', padding: '0.6rem 1.4rem' }}>Register</button>
       </div>
 
       {/* Mobile Toggle */}
-      <div
-        className="mobile-toggle"
+      <div className="mobile-toggle"
         style={{ display: 'flex', cursor: 'pointer', padding: '0.4rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)' }}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -86,47 +81,27 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.97 }}
-            transition={{ duration: 0.2 }}
-            className="glass-panel"
+      <div
+        ref={mobileMenuRef}
+        className="glass-panel"
+        style={{
+          display: isOpen ? 'flex' : 'none',
+          position: 'absolute', top: 'calc(100% + 0.75rem)', left: 0, width: '100%',
+          padding: '1.5rem', flexDirection: 'column', gap: '0.5rem',
+        }}
+      >
+        {links.map(link => (
+          <a key={link.href} href={link.href}
+            onClick={() => { setIsOpen(false); setActive(link.href); }}
             style={{
-              position: 'absolute',
-              top: 'calc(100% + 0.75rem)',
-              left: 0,
-              width: '100%',
-              padding: '1.5rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
+              color: 'var(--text-primary)', fontWeight: 600, fontSize: '1.1rem',
+              padding: '0.75rem 1rem', borderRadius: '8px',
+              background: 'rgba(255,255,255,0.03)', borderLeft: '3px solid var(--neon-blue)',
             }}
-          >
-            {links.map(link => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => { setIsOpen(false); setActive(link.href); }}
-                style={{
-                  color: 'var(--text-primary)',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.03)',
-                  borderLeft: '3px solid var(--neon-blue)',
-                }}
-              >
-                {link.label}
-              </a>
-            ))}
-            <button className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>Register</button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          >{link.label}</a>
+        ))}
+        <button className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>Register</button>
+      </div>
 
       <style>{`
         @media (min-width: 768px) {
@@ -134,7 +109,7 @@ const Navbar: React.FC = () => {
           .mobile-toggle { display: none !important; }
         }
       `}</style>
-    </motion.nav>
+    </nav>
   );
 };
 
