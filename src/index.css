@@ -23,6 +23,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: auto; }
 body { margin: 0; min-height: 100vh; overflow-x: hidden; background-color: var(--bg-color); width: 100%; }
+body.modal-open { overflow: hidden; }
 img, canvas, video { max-width: 100%; display: block; }
 h1, h2, h3, h4, h5, h6 { font-family: 'Orbitron', sans-serif; letter-spacing: 1px; line-height: 1.2; }
 a { color: var(--neon-blue); text-decoration: none; transition: color 0.3s, text-shadow 0.3s; }

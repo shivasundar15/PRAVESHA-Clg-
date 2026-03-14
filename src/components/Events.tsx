@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Terminal, Lightbulb, Gamepad2, Users, MonitorPlay, BrainCog, Presentation, Music, Ticket, ArrowRight, X, CheckCircle2, ExternalLink } from 'lucide-react';
@@ -137,20 +138,28 @@ const EventModal = ({ event, onClose }: { event: Event; onClose: () => void }) =
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    window.dispatchEvent(new Event('modal-open'));
     gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: 'power2.out' });
     gsap.fromTo(boxRef.current, { opacity: 0, scale: 0.9, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'back.out(1.4)' });
+    return () => { 
+      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open'); 
+      window.dispatchEvent(new Event('modal-close'));
+    };
   }, []);
 
   const handleClose = () => {
     gsap.to(overlayRef.current, { opacity: 0, duration: 0.15, onComplete: onClose });
   };
 
-  return (
+  return createPortal(
     <div ref={overlayRef} onClick={handleClose}
-      style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(0.75rem, 4vw, 1.5rem)' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#050508', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(0.75rem, 4vw, 1.5rem)' }}
     >
-      <div ref={boxRef} onClick={e => e.stopPropagation()} className="glass-panel"
-        style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(1.25rem, 5vw, 2.5rem)', borderColor: `${event.color}40`, position: 'relative', overflowX: 'hidden' }}
+      <div ref={boxRef} onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(1.25rem, 5vw, 2.5rem)', border: `1px solid ${event.color}40`, borderRadius: '16px', background: '#0a0a0f', boxShadow: '0 8px 32px rgba(0,0,0,0.8)', position: 'relative', overflowX: 'hidden' }}
       >
           {/* Top accent */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, transparent, ${event.color}, transparent)`, borderRadius: '16px 16px 0 0' }} />
@@ -211,7 +220,8 @@ const EventModal = ({ event, onClose }: { event: Event; onClose: () => void }) =
             <ExternalLink size={16} /> Register for {event.title}
           </a>
         </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

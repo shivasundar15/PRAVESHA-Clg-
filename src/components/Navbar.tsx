@@ -13,7 +13,9 @@ const links = [
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [active, setActive] = useState('#home');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -33,10 +35,33 @@ const Navbar: React.FC = () => {
     }
   }, [isOpen]);
 
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener('scroll', onScroll);
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      setScrolled(currentY > 30);
+      
+      if (currentY > lastY && currentY > 100) {
+        setIsVisible(false); // Hide on scroll down
+        setIsOpen(false); // Close menu if open
+      } else {
+        setIsVisible(true); // Show on scroll up
+      }
+      lastY = currentY;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  useEffect(() => {
+    const handleOpen = () => setIsModalOpen(true);
+    const handleClose = () => setIsModalOpen(false);
+    window.addEventListener('modal-open', handleOpen);
+    window.addEventListener('modal-close', handleClose);
+    return () => {
+      window.removeEventListener('modal-open', handleOpen);
+      window.removeEventListener('modal-close', handleClose);
+    };
   }, []);
 
   return (
@@ -44,12 +69,21 @@ const Navbar: React.FC = () => {
       ref={navRef}
       className="glass-panel"
       style={{
-        position: 'fixed', top: '1rem', left: '50%', transform: 'translateX(-50%)',
-        width: '92%', maxWidth: '1200px', zIndex: 100,
-        padding: '0.75rem 1.25rem', display: 'flex',
-        justifyContent: 'space-between', alignItems: 'center',
+        position: 'fixed', 
+        top: isVisible ? '1rem' : '-6rem', 
+        left: '50%', 
+        transform: 'translateX(-50%)',
+        width: '92%', 
+        maxWidth: '1200px', 
+        zIndex: 100,
+        padding: '0.75rem 1.25rem', 
+        display: isModalOpen ? 'none' : 'flex',
+        opacity: isModalOpen ? 0 : 1,
+        pointerEvents: isModalOpen ? 'none' : 'auto',
+        justifyContent: 'space-between', 
+        alignItems: 'center',
         boxShadow: scrolled ? '0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,42,42,0.1)' : '0 8px 32px rgba(0,0,0,0.4)',
-        transition: 'box-shadow 0.3s ease',
+        transition: 'top 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, box-shadow 0.3s ease',
       }}
     >
       {/* Logo */}
