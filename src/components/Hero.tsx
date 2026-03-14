@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { Zap, Calendar, Award, ChevronDown } from 'lucide-react';
 import HeroScene from './HeroScene';
+import { smoothScrollTo } from '../utils/smoothScroll';
 
 const TARGET = new Date('2026-04-09T09:00:00');
 
@@ -47,7 +48,7 @@ const Hero: React.FC = () => {
   }, []);
 
   return (
-    <section id="home" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', paddingTop: '5rem', paddingBottom: '3rem', position: 'relative', overflow: 'hidden' }}>
+    <section id="home" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', paddingTop: 'clamp(5rem, 12vw, 7rem)', paddingBottom: '3rem', position: 'relative', overflow: 'hidden' }}>
       <div className="scan-line" />
       <div className="container" style={{ position: 'relative', zIndex: 2, width: '100%' }}>
         <div className="hero-grid">
@@ -96,7 +97,7 @@ const Hero: React.FC = () => {
 
             {/* CTAs */}
             <div ref={ctaRef} style={{ opacity: 0, display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" onClick={() => document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' })}>
+              <button className="btn btn-primary" onClick={() => smoothScrollTo('#events')}>
                 <Zap size={16} /> Explore Events
               </button>
               <a href="https://instagram.com/PRAVESHA_2K26" target="_blank" rel="noreferrer" className="btn btn-secondary">
@@ -114,7 +115,7 @@ const Hero: React.FC = () => {
 
       <div ref={chevronRef}
         style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', color: 'var(--text-secondary)', cursor: 'pointer', zIndex: 2 }}
-        onClick={() => document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' })}
+        onClick={() => smoothScrollTo('#about')}
       >
         <ChevronDown size={26} />
       </div>

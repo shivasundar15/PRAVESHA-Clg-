@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import gsap from 'gsap';
+import { smoothScrollTo } from '../utils/smoothScroll';
 
 const links = [
   { label: 'Home', href: '#home' },
@@ -60,7 +61,8 @@ const Navbar: React.FC = () => {
       {/* Desktop Links */}
       <div style={{ display: 'none', gap: '0.25rem', alignItems: 'center' }} className="desktop-nav">
         {links.map(link => (
-          <a key={link.href} href={link.href} onClick={() => setActive(link.href)}
+          <a key={link.href} href={link.href}
+            onClick={e => { e.preventDefault(); setActive(link.href); smoothScrollTo(link.href); }}
             style={{
               color: active === link.href ? 'var(--neon-blue)' : 'var(--text-secondary)',
               fontWeight: 600, fontSize: '0.95rem', padding: '0.5rem 1rem',
@@ -92,7 +94,7 @@ const Navbar: React.FC = () => {
       >
         {links.map(link => (
           <a key={link.href} href={link.href}
-            onClick={() => { setIsOpen(false); setActive(link.href); }}
+            onClick={e => { e.preventDefault(); setIsOpen(false); setActive(link.href); smoothScrollTo(link.href); }}
             style={{
               color: 'var(--text-primary)', fontWeight: 600, fontSize: '1.1rem',
               padding: '0.75rem 1rem', borderRadius: '8px',
