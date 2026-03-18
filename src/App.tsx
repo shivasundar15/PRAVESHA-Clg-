@@ -7,7 +7,7 @@ import Coordinators from './components/Coordinators';
 import ComboEvent from './components/ComboEvent';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
-import DragonCursor from './components/DragonCursor';
+import ElectricCursor from './components/ElectricCursor';
 import SparkCanvas from './components/SparkCanvas';
 
 function App() {
@@ -18,8 +18,8 @@ function App() {
       {/* ── Cinematic Loading Overlay ──────────────────── */}
       {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
 
-      {/* ── Custom Dragon Cursor (desktop only) ──────── */}
-      <DragonCursor />
+      {/* ── Custom Electric Cursor (desktop only) ──────── */}
+      <ElectricCursor />
 
       {/* ── Global Ember Spark Effect ─────────────────── */}
       <SparkCanvas />
