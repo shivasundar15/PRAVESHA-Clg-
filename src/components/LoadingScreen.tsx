@@ -1,405 +1,102 @@
-import React, { useEffect, useRef, useCallback } from 'react';
-import gsap from 'gsap';
+import React, { useEffect, useRef } from 'react';
+import dragonVideo from '../assets/Dragon_Animation_To_Black_Hole_Landing - Trim (1).mp4';
 
-// ─── Types ─────────────────────────────────────────────────────────────────
-interface Circuit {
-  x: number; y: number; angle: number;
-  len: number; drawn: number; speed: number;
-  branches: Circuit[]; branched: boolean;
-  alpha: number;
-}
-
-interface Particle {
-  x: number; y: number; vx: number; vy: number;
-  life: number; size: number; color: string;
-}
+// ─── Pre-compute star positions at module level (never re-computed) ───────────
+const STARS = Array.from({ length: 55 }, (_, i) => ({
+  id: i,
+  left: `${(i * 17.3 + 11) % 100}%`,
+  top:  `${(i * 13.7 + 7)  % 100}%`,
+  size: 1 + (i % 3) * 0.6,
+  dur:  2 + (i % 5) * 0.7,
+  delay: `${(i % 30) * 0.1}s`,
+}));
 
 interface LoadingScreenProps { onComplete: () => void; }
 
-// ─── SVG Dragon Path (cyber geometric style) ──────────────────────────────
-const DRAGON_SVG = `
-<svg viewBox="0 0 280 120" xmlns="http://www.w3.org/2000/svg">
-  <!-- Body -->
-  <path d="M40 60 Q70 30 110 45 Q140 55 160 45 Q190 30 220 40 Q250 52 260 60 Q250 68 220 75 Q190 90 160 78 Q140 68 110 78 Q70 92 40 60Z"
-        fill="none" stroke="#ff2a2a" stroke-width="1.5" opacity="0.9"/>
-  <!-- Underbelly segments -->
-  <path d="M60 63 L80 60 L100 63 L120 60 L140 63 L160 60 L180 63 L200 60 L220 63 L240 60"
-        fill="none" stroke="#c0c0c0" stroke-width="0.8" opacity="0.6"/>
-  <!-- Head -->
-  <path d="M220 40 L255 25 L270 35 L265 50 L255 58 L240 56 L220 75Z"
-        fill="#1a0000" stroke="#ff2a2a" stroke-width="1.5"/>
-  <!-- Snout -->
-  <path d="M260 32 L278 40 L272 48 L262 46Z"
-        fill="#0a0000" stroke="#ff4444" stroke-width="1"/>
-  <!-- Eye (glowing) -->
-  <circle cx="252" cy="38" r="5" fill="#ff0000" opacity="0.9"/>
-  <circle cx="252" cy="38" r="2.5" fill="#ffaa00"/>
-  <circle cx="250.5" cy="36.5" r="1" fill="white" opacity="0.8"/>
-  <!-- Circuit lines on body -->
-  <line x1="120" y1="52" x2="130" y2="40" stroke="#ff2a2a" stroke-width="0.6" opacity="0.7"/>
-  <line x1="130" y1="40" x2="145" y2="44" stroke="#ff2a2a" stroke-width="0.6" opacity="0.7"/>
-  <line x1="160" y1="52" x2="175" y2="42" stroke="#c0c0c0" stroke-width="0.6" opacity="0.6"/>
-  <line x1="175" y1="42" x2="190" y2="48" stroke="#c0c0c0" stroke-width="0.6" opacity="0.6"/>
-  <!-- Wings upper -->
-  <path d="M140 50 Q120 10 80 5 Q100 30 110 45Z"
-        fill="rgba(255,42,42,0.15)" stroke="#ff2a2a" stroke-width="1.2"/>
-  <path d="M160 48 Q180 8 220 2 Q200 28 195 42Z"
-        fill="rgba(255,42,42,0.15)" stroke="#ff2a2a" stroke-width="1.2"/>
-  <!-- Wings lower -->
-  <path d="M140 68 Q120 100 75 110 Q95 85 110 75Z"
-        fill="rgba(192,192,192,0.12)" stroke="#c0c0c0" stroke-width="1"/>
-  <path d="M160 72 Q182 102 230 112 Q210 84 195 75Z"
-        fill="rgba(192,192,192,0.12)" stroke="#c0c0c0" stroke-width="1"/>
-  <!-- Tail -->
-  <path d="M40 60 Q20 50 10 45 Q5 48 8 55 Q15 62 25 65 Q10 72 12 78 Q20 80 35 65Z"
-        fill="none" stroke="#ff2a2a" stroke-width="1.2"/>
-  <!-- Horns -->
-  <line x1="248" y1="28" x2="255" y2="14" stroke="#c0c0c0" stroke-width="1.5"/>
-  <line x1="258" y1="30" x2="268" y2="16" stroke="#c0c0c0" stroke-width="1.5"/>
-  <!-- LED dots (circuit nodes) -->
-  <circle cx="120" cy="52" r="2" fill="#ff2a2a"/>
-  <circle cx="160" cy="52" r="2" fill="#ff2a2a"/>
-  <circle cx="130" cy="40" r="1.5" fill="#ff6666"/>
-  <circle cx="175" cy="42" r="1.5" fill="#c0c0c0"/>
-</svg>`;
-
-// ─── Component ──────────────────────────────────────────────────────────────
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const canvasRef  = useRef<HTMLCanvasElement>(null);
-  const dragonRef  = useRef<HTMLDivElement>(null);
-  const phaseRef   = useRef(0);
-  const rafRef     = useRef(0);
-  const circuitsRef = useRef<Circuit[]>([]);
-  const particlesRef = useRef<Particle[]>([]);
-  const bhRadiusRef = useRef(0);
-  const bhAlphaRef  = useRef(0);
-  const angleRef    = useRef(0);
+  const overlayRef  = useRef<HTMLDivElement>(null);
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const circleRef   = useRef<HTMLDivElement>(null);
+  const doneRef     = useRef(false);
+  const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const spawnCircuit = useCallback((
-    ctx: CanvasRenderingContext2D,
-    x: number, y: number, angle: number, depth = 0
-  ): Circuit => {
-    const W = ctx.canvas.width;
-    const H = ctx.canvas.height;
-    const cx = W / 2, cy = H / 2;
-    const distToCenter = Math.hypot(x - cx, y - cy);
-    // steer toward center
-    const toCenter = Math.atan2(cy - y, cx - x);
-    const steered   = angle + (toCenter - angle) * 0.12;
-    return {
-      x, y, angle: steered,
-      len: distToCenter * 0.18 + 20,
-      drawn: 0,
-      speed: 3 + Math.random() * 2,
-      branches: [],
-      branched: false,
-      alpha: 0.8 + Math.random() * 0.2,
-    };
-  }, []);
+  // ── Collapse: one-time canvas burst + overlay fade ────────────────────────
+  const triggerCollapse = () => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    if (fallbackRef.current) clearTimeout(fallbackRef.current);
 
-  const initCircuits = useCallback((ctx: CanvasRenderingContext2D) => {
-    const W = ctx.canvas.width, H = ctx.canvas.height;
-    const count = 28;
-    const cs: Circuit[] = [];
-    for (let i = 0; i < count; i++) {
-      const edge = i % 4;
-      let x = 0, y = 0;
-      if (edge === 0) { x = Math.random() * W; y = 0; }
-      else if (edge === 1) { x = W; y = Math.random() * H; }
-      else if (edge === 2) { x = Math.random() * W; y = H; }
-      else { x = 0; y = Math.random() * H; }
-      const angle = Math.atan2(H / 2 - y, W / 2 - x) + (Math.random() - 0.5) * 0.6;
-      cs.push(spawnCircuit(ctx, x, y, angle));
-    }
-    circuitsRef.current = cs;
-  }, [spawnCircuit]);
-
-  // ── Draw PCB Circuits (Phase 1) ──────────────────────────────────────────
-  const drawCircuits = useCallback((ctx: CanvasRenderingContext2D): boolean => {
-    const done: boolean[] = [];
-    const drawOne = (c: Circuit, color: string) => {
-      if (c.drawn >= c.len) { done.push(true); return; }
-      done.push(false);
-      c.drawn = Math.min(c.drawn + c.speed, c.len);
-      const ex = c.x + Math.cos(c.angle) * c.drawn;
-      const ey = c.y + Math.sin(c.angle) * c.drawn;
-
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 0.8;
-      ctx.globalAlpha = c.alpha * 0.7;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 6;
-      ctx.beginPath();
-      ctx.moveTo(c.x, c.y);
-      ctx.lineTo(ex, ey);
-      ctx.stroke();
-
-      // LED dot at head
-      ctx.beginPath();
-      ctx.arc(ex, ey, 1.5, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.globalAlpha = c.alpha;
-      ctx.fill();
-      ctx.restore();
-
-      // Branch
-      if (!c.branched && c.drawn > c.len * 0.4 && Math.random() < 0.04) {
-        c.branched = true;
-        const bAngle = c.angle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
-        c.branches.push(spawnCircuit(ctx, ex, ey, bAngle));
-      }
-      c.branches.forEach(b => drawOne(b, color));
-    };
-
-    circuitsRef.current.forEach((c, i) => {
-      drawOne(c, i % 3 === 0 ? '#c0c0c0' : '#ff2a2a');
-    });
-    return done.every(Boolean);
-  }, [spawnCircuit]);
-
-  // ── Draw Black Hole (Phase 2) ─────────────────────────────────────────────
-  const drawBlackHole = useCallback((ctx: CanvasRenderingContext2D, progress: number) => {
-    const W = ctx.canvas.width, H = ctx.canvas.height;
-    const cx = W / 2, cy = H / 2;
-    const maxR = Math.min(W, H) * 0.28;
-    const r = maxR * progress;
-    bhRadiusRef.current = r;
-    bhAlphaRef.current  = progress;
-    angleRef.current   += 0.012;
-
-    ctx.save();
-    // Event horizon (deep black core)
-    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    core.addColorStop(0,   'rgba(0,0,0,1)');
-    core.addColorStop(0.6, 'rgba(5,0,0,0.97)');
-    core.addColorStop(0.85,'rgba(30,0,0,0.85)');
-    core.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 1.4, 0, Math.PI * 2);
-    ctx.fillStyle = core;
-    ctx.fill();
-
-    // Accretion rings
-    for (let ring = 0; ring < 3; ring++) {
-      const rr = r * (0.95 + ring * 0.18);
-      const bw = r * 0.08;
-      const grad = ctx.createRadialGradient(cx, cy, rr - bw, cx, cy, rr + bw);
-      const alpha = (0.7 - ring * 0.2) * progress;
-      grad.addColorStop(0,   `rgba(255,42,42,0)`);
-      grad.addColorStop(0.4, `rgba(255,42,42,${alpha})`);
-      grad.addColorStop(0.6, `rgba(255,80,80,${alpha * 1.2})`);
-      grad.addColorStop(1,   `rgba(255,42,42,0)`);
-      ctx.beginPath();
-      ctx.arc(cx, cy, rr, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255,42,42,${alpha})`;
-      ctx.lineWidth = bw * 2;
-      ctx.shadowColor = '#ff2a2a';
-      ctx.shadowBlur  = 20 * progress;
-      ctx.stroke();
-    }
-
-    // Gravitational lensing swirls
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(angleRef.current);
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      const x1 = Math.cos(a) * r * 0.9;
-      const y1 = Math.sin(a) * r * 0.9;
-      const x2 = Math.cos(a + 0.5) * r * 1.5;
-      const y2 = Math.sin(a + 0.5) * r * 1.5;
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.quadraticCurveTo(0, 0, x2, y2);
-      ctx.strokeStyle = `rgba(192,192,192,${0.25 * progress})`;
-      ctx.lineWidth = 1;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = 'silver';
-      ctx.stroke();
-    }
-    ctx.restore();
-    ctx.restore();
-  }, []);
-
-  // ── Spawn Particles (Phase 4) ─────────────────────────────────────────────
-  const spawnBurstParticles = useCallback((cx: number, cy: number) => {
-    for (let i = 0; i < 80; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 6;
-      particlesRef.current.push({
-        x: cx, y: cy,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 1,
-        size: 1.5 + Math.random() * 3.5,
-        color: Math.random() < 0.7 ? '#ff2a2a' : '#c0c0c0',
-      });
-    }
-  }, []);
-
-  const drawParticles = useCallback((ctx: CanvasRenderingContext2D) => {
-    particlesRef.current = particlesRef.current.filter(p => p.life > 0);
-    particlesRef.current.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      p.vx *= 0.94; p.vy *= 0.94;
-      p.life = Math.max(0, p.life - 0.025);
-      ctx.save();
-      ctx.globalAlpha = p.life * 0.85;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur  = 8;
-      ctx.fill();
-      ctx.restore();
-    });
-  }, []);
-
-  // ── Main Animation ────────────────────────────────────────────────────────
-  useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx    = canvas.getContext('2d')!;
     const overlay = overlayRef.current!;
-    const dragon  = dragonRef.current!;
+    const canvas  = canvasRef.current!;
+    const ctx     = canvas.getContext('2d')!;
 
-    const setSize = () => {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    setSize();
-    window.addEventListener('resize', setSize);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width  = window.innerWidth  * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width  = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
+    ctx.scale(dpr, dpr);
 
-    const W = () => canvas.width;
-    const H = () => canvas.height;
+    const W  = window.innerWidth;
+    const H  = window.innerHeight;
+    const cx = W / 2;
+    const cy = H / 2;
+    const circleSize = Math.min(W * 0.55, H * 0.55, 420);
+    const r  = circleSize / 2;
 
-    // ── Phases ───────────────────────────────────────────────────────────────
-    let phase       = 0;
-    let bhProgress  = 0;
-    let dragonX     = -300;
-    const dragonY   = () => H() / 2;
-    let dragonScale = 1;
-    let dragonAlpha = 0;
-    let bhGrow      = 0;
-    let dragonInBH  = false;
-    let burstSpawned = false;
-    let finalFade   = 0;
-    let startTime   = performance.now();
+    let start: number | null = null;
+    const DURATION = 1600;
 
-    initCircuits(ctx);
+    const burstLoop = (ts: number) => {
+      if (!start) start = ts;
+      const t   = Math.min((ts - start) / DURATION, 1);
+      const inv = 1 - t;
 
-    const loop = () => {
-      rafRef.current = requestAnimationFrame(loop);
-      const elapsed = performance.now() - startTime;
+      ctx.clearRect(0, 0, W, H);
 
-      ctx.clearRect(0, 0, W(), H());
+      // Expanding flash ring
+      const flashR = r + Math.max(W, H) * 0.9 * t;
+      const flash  = ctx.createRadialGradient(cx, cy, r * 0.85, cx, cy, flashR);
+      flash.addColorStop(0,    `rgba(255,42,42,${0.9 * inv})`);
+      flash.addColorStop(0.1,  `rgba(255,100,60,${0.5 * inv})`);
+      flash.addColorStop(0.35, `rgba(255,42,42,${0.1 * inv})`);
+      flash.addColorStop(1,    'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, flashR, 0, Math.PI * 2);
+      ctx.fillStyle = flash;
+      ctx.fill();
 
-      // ── PHASE 0: black bg always ──────────────────────────────────────────
-      ctx.fillStyle = '#050508';
-      ctx.fillRect(0, 0, W(), H());
+      overlay.style.opacity = String(Math.max(inv, 0));
 
-      // ── PHASE 1: Circuit traces (0–2.5s) ─────────────────────────────────
-      if (phase === 0) {
-        if (elapsed < 2500) {
-          drawCircuits(ctx);
-        } else {
-          phase = 1;
-          startTime = performance.now();
-        }
-      }
-
-      // ── Keep drawing circuits as ghost layer ──────────────────────────────
-      if (phase >= 1) {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, 0.4 - bhGrow * 0.5);
-        drawCircuits(ctx);
-        ctx.restore();
-      }
-
-      // ── PHASE 1: Black hole materializes (0–1.8s) ─────────────────────────
-      if (phase === 1) {
-        bhGrow = Math.min(elapsed / 1800, 1);
-        drawBlackHole(ctx, bhGrow);
-        if (bhGrow >= 1) {
-          phase = 2;
-          startTime = performance.now();
-          dragonAlpha = 0;
-          dragonX = -350;
-          gsap.set(dragon, { opacity: 0, x: -350, y: 0, scale: 1 });
-          gsap.to(dragon, { opacity: 1, duration: 0.4 });
-        }
-      }
-
-      // ── PHASE 2: Black hole holds, draw it at full ────────────────────────
-      if (phase >= 2) {
-        drawBlackHole(ctx, 1);
-        drawParticles(ctx);
-      }
-
-      // ── PHASE 2: Dragon flies in (0–2.2s) ─────────────────────────────────
-      if (phase === 2) {
-        const t  = Math.min(elapsed / 2200, 1);
-        dragonX  = -350 + (W() / 2 + 120) * t;
-        dragonAlpha = Math.min(t * 3, 1);
-        dragon.style.left    = `${dragonX}px`;
-        dragon.style.top     = `${H() / 2 - 60}px`;
-        dragon.style.opacity = String(dragonAlpha);
-
-        if (t >= 1) {
-          phase = 3;
-          startTime = performance.now();
-        }
-      }
-
-      // ── PHASE 3: Dragon enters black hole (0–1.4s) ────────────────────────
-      if (phase === 3) {
-        const t = Math.min(elapsed / 1400, 1);
-        dragonScale = 1 - t * 0.85;
-        dragonAlpha = 1 - t;
-        dragonX     = W() / 2 + 120 - 120 * t;
-        dragon.style.left      = `${dragonX}px`;
-        dragon.style.transform = `scaleX(${dragonScale}) scaleY(${dragonScale})`;
-        dragon.style.opacity   = String(Math.max(dragonAlpha, 0));
-
-        if (!burstSpawned && t > 0.5) {
-          burstSpawned = true;
-          spawnBurstParticles(W() / 2, H() / 2);
-        }
-
-        if (t >= 1) {
-          phase = 4;
-          startTime = performance.now();
-          dragon.style.display = 'none';
-        }
-      }
-
-      // ── PHASE 4: BH collapses, page reveals (0–3.5s SLOW FADE) ──────────
-      if (phase === 4) {
-        const t   = Math.min(elapsed / 3500, 1);
-        const inv = 1 - t;
-        drawBlackHole(ctx, inv);
-        drawParticles(ctx);
-
-        // Slow cinematic fade
-        overlay.style.opacity = String(inv);
-
-        if (t >= 1) {
-          cancelAnimationFrame(rafRef.current);
-          window.removeEventListener('resize', setSize);
-          overlay.style.opacity = '0';
-          overlay.style.pointerEvents = 'none';
-          setTimeout(onComplete, 600);
-        }
+      if (t < 1) {
+        requestAnimationFrame(burstLoop);
+      } else {
+        overlay.style.opacity        = '0';
+        overlay.style.pointerEvents  = 'none';
+        setTimeout(onComplete, 250);
       }
     };
-    loop();
+
+    requestAnimationFrame(burstLoop);
+  };
+
+  // ── Entry animation + fallback ────────────────────────────────────────────
+  useEffect(() => {
+    const circle = circleRef.current!;
+    const raf = requestAnimationFrame(() => {
+      circle.style.opacity   = '1';
+      circle.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+
+    // Safety fallback if video never fires onEnded
+    fallbackRef.current = setTimeout(triggerCollapse, 14000);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize', setSize);
+      cancelAnimationFrame(raf);
+      if (fallbackRef.current) clearTimeout(fallbackRef.current);
     };
-  }, [drawBlackHole, drawCircuits, drawParticles, initCircuits, onComplete, spawnBurstParticles]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -407,52 +104,208 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
         background: '#050508',
-        transition: 'opacity 2s ease',
         overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
+      {/* ── Star field: pure CSS, zero JS per frame ──────────────────────── */}
+      <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+        {STARS.map(s => (
+          <div
+            key={s.id}
+            style={{
+              position: 'absolute',
+              width:  `${s.size}px`,
+              height: `${s.size}px`,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.65)',
+              left: s.left,
+              top:  s.top,
+              animation: `ls-twinkle ${s.dur}s ease-in-out infinite`,
+              animationDelay: s.delay,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* ── CSS-only accretion rings — no JS per frame ───────────────────── */}
+      <div aria-hidden style={{ position: 'absolute', zIndex: 1, pointerEvents: 'none' }}>
+        {/* Ring 1 — tightest, brightest */}
+        <div style={{
+          position: 'absolute',
+          width: 'clamp(244px, calc(min(55vw, 55vh) + 24px), 444px)',
+          height: 'clamp(244px, calc(min(55vw, 55vh) + 24px), 444px)',
+          borderRadius: '50%',
+          border: '3px solid rgba(255,42,42,0.88)',
+          boxShadow: '0 0 18px rgba(255,42,42,0.75), 0 0 40px rgba(255,42,42,0.4), inset 0 0 12px rgba(255,42,42,0.28)',
+          top: '50%', left: '50%',
+          transform: 'translate(-50%,-50%)',
+          animation: 'ls-ring1 2.2s ease-in-out infinite',
+        }} />
+        {/* Ring 2 — medium */}
+        <div style={{
+          position: 'absolute',
+          width: 'clamp(270px, calc(min(55vw, 55vh) + 50px), 470px)',
+          height: 'clamp(270px, calc(min(55vw, 55vh) + 50px), 470px)',
+          borderRadius: '50%',
+          border: '2px solid rgba(255,42,42,0.45)',
+          boxShadow: '0 0 22px rgba(255,42,42,0.35), 0 0 55px rgba(255,42,42,0.15)',
+          top: '50%', left: '50%',
+          transform: 'translate(-50%,-50%)',
+          animation: 'ls-ring2 2.8s ease-in-out infinite',
+          animationDelay: '0.4s',
+        }} />
+        {/* Ring 3 — outermost, faintest */}
+        <div style={{
+          position: 'absolute',
+          width: 'clamp(300px, calc(min(55vw, 55vh) + 80px), 500px)',
+          height: 'clamp(300px, calc(min(55vw, 55vh) + 80px), 500px)',
+          borderRadius: '50%',
+          border: '1.5px solid rgba(255,42,42,0.22)',
+          boxShadow: '0 0 32px rgba(255,42,42,0.18), 0 0 70px rgba(255,42,42,0.07)',
+          top: '50%', left: '50%',
+          transform: 'translate(-50%,-50%)',
+          animation: 'ls-ring3 3.6s ease-in-out infinite',
+          animationDelay: '0.9s',
+        }} />
+
+        {/* Rotating conic sweep glow — GPU only, no paint ─────────────────── */}
+        <div style={{
+          position: 'absolute',
+          width: 'clamp(252px, calc(min(55vw, 55vh) + 32px), 452px)',
+          height: 'clamp(252px, calc(min(55vw, 55vh) + 32px), 452px)',
+          borderRadius: '50%',
+          background: 'conic-gradient(from 0deg, rgba(255,42,42,0) 0%, rgba(255,60,40,0.55) 20%, rgba(255,120,70,0.8) 35%, rgba(255,42,42,0.45) 55%, rgba(255,42,42,0) 70%)',
+          top: '50%', left: '50%',
+          transform: 'translate(-50%,-50%)',
+          animation: 'ls-sweep 3s linear infinite',
+          WebkitMaskImage: 'radial-gradient(transparent 47%, black 51.5%, black 56%, transparent 60%)',
+          maskImage: 'radial-gradient(transparent 47%, black 51.5%, black 56%, transparent 60%)',
+        }} />
+      </div>
+
+      {/* ── Canvas — idle (0 pixels), only activated on collapse ─────────── */}
       <canvas
         ref={canvasRef}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-      />
-
-      {/* Cyber Dragon Element */}
-      <div
-        ref={dragonRef}
         style={{
-          position: 'absolute',
-          width: '320px',
-          height: '130px',
-          opacity: 0,
-          transformOrigin: 'center center',
-          filter: 'drop-shadow(0 0 12px #ff2a2a) drop-shadow(0 0 24px #ff2a2a55)',
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
           pointerEvents: 'none',
+          zIndex: 5,
         }}
-        dangerouslySetInnerHTML={{ __html: DRAGON_SVG }}
       />
 
-      {/* Loading text */}
+      {/* ── Outer ambient halo (pure CSS radial, breathing) ──────────────── */}
+      <div aria-hidden style={{
+        position: 'absolute', zIndex: 0, pointerEvents: 'none',
+        width:  'clamp(400px, 72vw, 700px)',
+        height: 'clamp(400px, 72vw, 700px)',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,42,42,0.1) 0%, rgba(120,0,0,0.07) 42%, transparent 72%)',
+        top: '50%', left: '50%',
+        transform: 'translate(-50%,-50%)',
+        animation: 'ls-halo 4s ease-in-out infinite',
+      }} />
+
+      {/* ── Circular video container ──────────────────────────────────────── */}
       <div
+        ref={circleRef}
         style={{
           position: 'absolute',
-          bottom: '12%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          fontFamily: 'Orbitron, sans-serif',
-          fontSize: 'clamp(0.65rem, 2vw, 0.85rem)',
-          letterSpacing: '4px',
-          color: 'rgba(255,42,42,0.6)',
-          animation: 'blink-load 1.2s ease-in-out infinite',
-          whiteSpace: 'nowrap',
+          top: '50%', left: '50%',
+          zIndex: 2,
+          width:  'clamp(220px, min(55vw, 55vh), 420px)',
+          height: 'clamp(220px, min(55vw, 55vh), 420px)',
+          borderRadius: '50%',
+          overflow: 'hidden',
+          // Entry: starts hidden, CSS transition reveals it
+          opacity: 0,
+          transform: 'translate(-50%, -50%) scale(0.72)',
+          transition: 'opacity 0.65s cubic-bezier(0.22,1,0.36,1), transform 0.65s cubic-bezier(0.22,1,0.36,1)',
+          willChange: 'transform, opacity',
+          boxShadow:
+            '0 0 0 2px rgba(255,42,42,0.88), ' +
+            '0 0 18px rgba(255,42,42,0.6), ' +
+            '0 0 48px rgba(255,42,42,0.25)',
+          // Own stacking context so browser can decode video independently
+          isolation: 'isolate',
         }}
       >
+        <video
+          src={dragonVideo}
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          onEnded={triggerCollapse}
+          style={{
+            width: '100%', height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+            // Promote to own layer — keeps video decode off layout thread
+            transform: 'translateZ(0)',
+          }}
+        />
+        {/* Inner vignette edge softener */}
+        <div aria-hidden style={{
+          position: 'absolute', inset: 0,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, transparent 50%, rgba(0,0,0,0.55) 100%)',
+          pointerEvents: 'none',
+        }} />
+      </div>
+
+      {/* ── Loading text ─────────────────────────────────────────────────── */}
+      <div style={{
+        position: 'absolute',
+        top: 'calc(50% + clamp(120px, calc(min(55vw, 55vh) / 2 + 1.4rem), 230px))',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 6,
+        fontFamily: "'Orbitron', sans-serif",
+        fontSize: 'clamp(0.58rem, 1.6vw, 0.78rem)',
+        letterSpacing: '4px',
+        color: 'rgba(255,42,42,0.6)',
+        animation: 'ls-blink 1.3s ease-in-out infinite',
+        whiteSpace: 'nowrap',
+        userSelect: 'none',
+      }}>
         INITIALIZING SYSTEM...
       </div>
 
+      {/* ── All keyframes: only uses transform + opacity (compositor thread) */}
       <style>{`
-        @keyframes blink-load {
-          0%, 100% { opacity: 0.4; }
-          50% { opacity: 1; }
+        @keyframes ls-twinkle {
+          0%,100% { opacity: 0.12; transform: scale(1); }
+          50%      { opacity: 0.85; transform: scale(1.5); }
+        }
+        @keyframes ls-ring1 {
+          0%,100% { opacity: 0.75; transform: translate(-50%,-50%) scale(1); }
+          50%      { opacity: 1;    transform: translate(-50%,-50%) scale(1.025); box-shadow: 0 0 28px rgba(255,42,42,0.9), 0 0 60px rgba(255,42,42,0.45); }
+        }
+        @keyframes ls-ring2 {
+          0%,100% { opacity: 0.45; transform: translate(-50%,-50%) scale(1); }
+          50%      { opacity: 0.8;  transform: translate(-50%,-50%) scale(1.03); }
+        }
+        @keyframes ls-ring3 {
+          0%,100% { opacity: 0.25; transform: translate(-50%,-50%) scale(1); }
+          50%      { opacity: 0.55; transform: translate(-50%,-50%) scale(1.04); }
+        }
+        @keyframes ls-sweep {
+          from { transform: translate(-50%,-50%) rotate(0deg); }
+          to   { transform: translate(-50%,-50%) rotate(360deg); }
+        }
+        @keyframes ls-halo {
+          0%,100% { opacity: 0.65; transform: translate(-50%,-50%) scale(1); }
+          50%      { opacity: 1;   transform: translate(-50%,-50%) scale(1.07); }
+        }
+        @keyframes ls-blink {
+          0%,100% { opacity: 0.28; }
+          50%      { opacity: 1; }
         }
       `}</style>
     </div>
