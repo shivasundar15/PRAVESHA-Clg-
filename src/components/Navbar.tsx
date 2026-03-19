@@ -13,6 +13,8 @@ const links = [
 // Registration URL — update when form goes live
 const REGISTER_URL = 'https://forms.gle/example'; // ← replace with actual form URL
 
+import logoImage from '../assets/pravesha-logo.png';
+
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -100,19 +102,15 @@ const Navbar: React.FC = () => {
       {/* Logo */}
       <div
         style={{
-          fontFamily: 'Orbitron', fontWeight: 900,
-          fontSize: 'clamp(1rem, 4vw, 1.4rem)',
-          display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0,
+          display: 'flex', alignItems: 'center', minWidth: 0,
         }}
+        onClick={() => { window.location.href = '/'; }}
       >
-        <div className="pulse-dot" style={{ flexShrink: 0 }} />
-        <span
-          className="glitch"
-          data-text="PRAVESHA"
-          style={{ color: 'var(--neon-red)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-        >
-          PRAVESHA
-        </span>
+        <img 
+          src={logoImage} 
+          alt="Pravesha Logo" 
+          style={{ height: 'clamp(30px, 8vw, 45px)', cursor: 'pointer', objectFit: 'contain' }} 
+        />
       </div>
 
       {/* Desktop Links */}

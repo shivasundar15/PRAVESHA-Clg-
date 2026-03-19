@@ -14,7 +14,7 @@ const stats = [
 
 const highlights = [
   { icon: Cpu, title: 'Technical Events', desc: 'Paper Presentation, Project Expo, Coding Challenges, UI Design and more — test your skills across 6 technical domains.' },
-  { icon: Trophy, title: 'Cash Prizes', desc: 'Win exciting cash prizes across all events. Registration fee: ₹150/event or ₹200 combo for two events.' },
+  { icon: Trophy, title: 'Cash Prizes', desc: 'Win exciting cash prizes across all events. Registration fee: ₹150/event.' },
   { icon: MapPin, title: 'Venue', desc: 'VELS Institute of Science, Technology & Advanced Studies (VISTAS), Pallavaram — Chennai.' },
   { icon: Globe, title: 'Open to All', desc: 'Open to students from all colleges across India. Last date for online registration is March 26 — on-spot registration will not be available.' },
 ];
@@ -82,7 +82,7 @@ const About: React.FC = () => {
               <div style={{ width: 48, height: 48, borderRadius: 12, background: `${color}15`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', color }}>
                 <Icon size={24} />
               </div>
-              <div style={{ fontFamily: 'Orbitron', fontWeight: 900, fontSize: '2rem', color, lineHeight: 1 }}>{value}</div>
+              <div style={{ fontFamily: 'Orbitron', fontWeight: 900, fontSize: value.length > 3 ? 'clamp(1.2rem, 3vw, 1.7rem)' : '2rem', color, lineHeight: 1, textTransform: 'uppercase', wordBreak: 'break-word' }}>{value}</div>
               <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.4rem', letterSpacing: '1px' }}>{label}</div>
             </div>
           ))}

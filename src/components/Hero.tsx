@@ -1,33 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { Zap, Calendar, Award, ChevronDown } from 'lucide-react';
 import { smoothScrollTo } from '../utils/smoothScroll';
 import themeImage from '../assets/hero.png';
+import CountdownTimer from './CountdownTimer';
 import HeroScene from './HeroScene';
 
-const TARGET = new Date('2026-04-09T09:00:00');
-
-function useCountdown() {
-  const calc = () => {
-    const diff = TARGET.getTime() - Date.now();
-    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-    return {
-      days:    Math.floor(diff / 86400000),
-      hours:   Math.floor((diff % 86400000) / 3600000),
-      minutes: Math.floor((diff % 3600000)  / 60000),
-      seconds: Math.floor((diff % 60000)    / 1000),
-    };
-  };
-  const [time, setTime] = useState(calc);
-  useEffect(() => {
-    const id = setInterval(() => setTime(calc()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return time;
-}
-
 const Hero: React.FC = () => {
-  const { days, hours, minutes, seconds } = useCountdown();
 
   const tagRef       = useRef<HTMLSpanElement>(null);
   const h1Ref        = useRef<HTMLHeadingElement>(null);
@@ -133,17 +112,7 @@ const Hero: React.FC = () => {
               <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '3px', marginBottom: '0.75rem' }}>
                 EVENT STARTS IN
               </div>
-              <div className="countdown-row">
-                {[
-                  { val: days, label: 'DAYS' }, { val: hours,   label: 'HRS' },
-                  { val: minutes, label: 'MIN' }, { val: seconds, label: 'SEC' },
-                ].map(({ val, label }) => (
-                  <div key={label} className="countdown-box">
-                    <span className="countdown-num">{String(val).padStart(2, '0')}</span>
-                    <span className="countdown-label">{label}</span>
-                  </div>
-                ))}
-              </div>
+              <CountdownTimer />
             </div>
 
             {/* CTAs */}

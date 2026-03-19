@@ -290,11 +290,6 @@ const Events: React.FC = () => {
             </div>
             <div className="fee-divider" style={{ width: '1px', background: 'rgba(255,255,255,0.1)', alignSelf: 'stretch' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Combo Offer:</span>
-              <span style={{ color: 'white', fontWeight: 700, fontFamily: 'Orbitron', fontSize: '0.95rem' }}>₹200 / 2 Events</span>
-            </div>
-            <div className="fee-divider" style={{ width: '1px', background: 'rgba(255,255,255,0.1)', alignSelf: 'stretch' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <div className="pulse-dot" style={{ background: 'var(--neon-blue)', boxShadow: '0 0 8px var(--neon-blue)' }} />
               <span style={{ color: 'var(--neon-blue)', fontWeight: 700, fontFamily: 'Orbitron', fontSize: '0.9rem' }}>Last Date for Registration: MARCH 26</span>
             </div>
