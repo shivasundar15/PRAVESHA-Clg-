@@ -1,104 +1,107 @@
 import React, { useEffect, useRef } from 'react';
-import { GraduationCap, UserCircle, Phone } from 'lucide-react';
+import { GraduationCap, UserCircle } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const staffCoordinators = [
-  { name: 'Dr. A. Rajesh',        phone: '9750222225' },
-  { name: 'Dr. A. Saritha',       phone: '9820305258' },
-  { name: 'Dr. P. Thilakavathy',  phone: '9920026608' },
-  { name: 'Mr. N. Udayakumar',    phone: '8228777606' },
+  { name: 'Dr. A. Saritha' },
+  { name: 'Dr. E. Padma' },
+  { name: 'Dr. P. Thilakavathy' },
+  { name: 'Mr. N. Udayakumar' },
+  { name: 'Ms. Yamini B' },
 ];
 
 const studentCoordinators = [
-  { name: 'Ananya S',             phone: '7356666091' },
-  { name: 'Sakthi Priyadharsan',  phone: '9345252389' },
-  { name: 'Shiva Sundar P',       phone: '7338711301' },
-  { name: 'S. Mohammed Kabir',    phone: '9840362703' },
-  { name: 'K.B. Yathindra',       phone: '8667669019' },
+  { name: 'Ananya S' },
+  { name: 'Aditya Anabayan B' },
+  { name: 'Sakthi Priyadharsan' },
+  { name: 'Bhavana M' },
+  { name: 'Shiva Sundar P' },
+  { name: 'Abirutha' },
+  { name: 'Mohammed Kabir S' },
+  { name: 'Pooja Manoharan' },
+  { name: 'Yathindra K B' },
+  { name: 'Akshara S' },
 ];
 
-const PersonRow = ({ name, phone, color }: { name: string; phone: string; color: string }) => (
+// Single name chip used in staff list (single column)
+const StaffRow = ({ name, color }: { name: string; color: string }) => (
   <div
-    className="person-row"
     style={{
-      display: 'grid',
-      gridTemplateColumns: '1fr auto',
+      display: 'flex',
       alignItems: 'center',
-      gap: '0.5rem',
-      padding: '0.8rem 1rem',
+      gap: '0.75rem',
+      padding: '0.75rem 1rem',
       borderRadius: '12px',
       background: 'rgba(255,255,255,0.03)',
       border: '1px solid rgba(255,255,255,0.06)',
       transition: 'background 0.2s',
-      width: '100%',
       boxSizing: 'border-box',
     }}
+    onMouseEnter={e => ((e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.06)')}
+    onMouseLeave={e => ((e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)')}
   >
-    {/* Name */}
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0 }}>
-      <div
-        style={{
-          width: '8px', height: '8px', borderRadius: '50%',
-          background: color, flexShrink: 0,
-          boxShadow: `0 0 8px ${color}80`,
-        }}
-      />
-      <span
-        style={{
-          fontSize: 'clamp(0.82rem, 1.8vw, 0.98rem)',
-          fontWeight: 600,
-          color: 'var(--text-primary)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          minWidth: 0,
-        }}
-      >
-        {name}
-      </span>
-    </div>
-
-    {/* Phone */}
-    <a
-      href={`tel:${phone}`}
-      className="person-phone-link"
+    <div
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.4rem',
-        color,
-        fontFamily: 'Orbitron',
-        fontSize: 'clamp(0.65rem, 1.5vw, 0.82rem)',
-        fontWeight: 700,
-        background: `${color}12`,
-        padding: '0.35rem 0.65rem',
-        borderRadius: '8px',
-        border: `1px solid ${color}30`,
-        transition: 'all 0.2s',
-        whiteSpace: 'nowrap',
-        flexShrink: 0,
-        textDecoration: 'none',
-        minWidth: '130px',
-        justifyContent: 'center',
-        fontVariantNumeric: 'tabular-nums',
+        width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
+        background: color, boxShadow: `0 0 8px ${color}90`,
+      }}
+    />
+    <span
+      style={{
+        fontSize: 'clamp(0.85rem, 1.8vw, 1rem)',
+        fontWeight: 600,
+        color: 'var(--text-primary)',
       }}
     >
-      <Phone size={12} style={{ opacity: 0.9, flexShrink: 0 }} />
-      <span style={{ letterSpacing: '0.6px' }}>{phone}</span>
-    </a>
+      {name}
+    </span>
   </div>
 );
 
-const CoordCard = ({
-  title, icon: Icon, color, people, cardRef,
+// Compact name chip used in the two-column student grid
+const StudentChip = ({ name, color }: { name: string; color: string }) => (
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.6rem',
+      padding: '0.65rem 0.9rem',
+      borderRadius: '10px',
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid rgba(255,255,255,0.06)',
+      transition: 'background 0.2s',
+      boxSizing: 'border-box',
+    }}
+    onMouseEnter={e => ((e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.06)')}
+    onMouseLeave={e => ((e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)')}
+  >
+    <div
+      style={{
+        width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
+        background: color, boxShadow: `0 0 6px ${color}90`,
+      }}
+    />
+    <span
+      style={{
+        fontSize: 'clamp(0.78rem, 1.6vw, 0.92rem)',
+        fontWeight: 600,
+        color: 'var(--text-primary)',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {name}
+    </span>
+  </div>
+);
+
+const StaffCard = ({
+  cardRef,
 }: {
-  title: string;
-  icon: React.ElementType;
-  color: string;
-  people: { name: string; phone: string }[];
   cardRef: React.RefObject<HTMLDivElement>;
 }) => (
   <div
@@ -107,7 +110,7 @@ const CoordCard = ({
     style={{
       opacity: 0,
       padding: 'clamp(1.25rem, 3vw, 2rem)',
-      borderColor: `${color}33`,
+      borderColor: 'rgba(255,42,42,0.22)',
       position: 'relative',
       overflow: 'hidden',
       display: 'flex',
@@ -116,32 +119,69 @@ const CoordCard = ({
       boxSizing: 'border-box',
     }}
   >
-    {/* Top accent bar */}
-    <div
-      style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
-        background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
-      }}
-    />
+    {/* Accent bar */}
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, var(--neon-red), transparent)' }} />
 
-    {/* Card Header */}
+    {/* Header */}
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.5rem' }}>
-      <div
-        style={{
-          width: '46px', height: '46px', borderRadius: '12px',
-          background: `${color}15`, border: `1px solid ${color}30`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color, flexShrink: 0,
-        }}
-      >
-        <Icon size={22} />
+      <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'rgba(255,42,42,0.12)', border: '1px solid rgba(255,42,42,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--neon-red)', flexShrink: 0 }}>
+        <GraduationCap size={22} />
       </div>
-      <h3 style={{ fontSize: 'clamp(1rem, 2vw, 1.25rem)', margin: 0, color: 'white' }}>{title}</h3>
+      <h3 style={{ fontSize: 'clamp(1rem, 2vw, 1.2rem)', margin: 0, color: 'white', letterSpacing: '0.5px' }}>STAFF COORDINATORS</h3>
     </div>
 
-    {/* People List */}
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', flex: 1 }}>
-      {people.map(p => <PersonRow key={p.name} {...p} color={color} />)}
+    {/* List */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', flex: 1 }}>
+      {staffCoordinators.map(p => (
+        <StaffRow key={p.name} name={p.name} color="var(--neon-red)" />
+      ))}
+    </div>
+  </div>
+);
+
+const StudentCard = ({
+  cardRef,
+}: {
+  cardRef: React.RefObject<HTMLDivElement>;
+}) => (
+  <div
+    ref={cardRef}
+    className="glass-panel coord-card"
+    style={{
+      opacity: 0,
+      padding: 'clamp(1.25rem, 3vw, 2rem)',
+      borderColor: 'rgba(0,212,255,0.22)',
+      position: 'relative',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      boxSizing: 'border-box',
+    }}
+  >
+    {/* Accent bar */}
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, var(--neon-blue), transparent)' }} />
+
+    {/* Header */}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.5rem' }}>
+      <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--neon-blue)', flexShrink: 0 }}>
+        <UserCircle size={22} />
+      </div>
+      <h3 style={{ fontSize: 'clamp(1rem, 2vw, 1.2rem)', margin: 0, color: 'white', letterSpacing: '0.5px' }}>STUDENT COORDINATORS</h3>
+    </div>
+
+    {/* Two-column grid */}
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '0.6rem',
+        flex: 1,
+      }}
+    >
+      {studentCoordinators.map(p => (
+        <StudentChip key={p.name} name={p.name} color="var(--neon-blue)" />
+      ))}
     </div>
   </div>
 );
@@ -182,20 +222,8 @@ const Coordinators: React.FC = () => {
 
         {/* Cards */}
         <div className="coords-grid">
-          <CoordCard
-            title="STAFF COORDINATORS"
-            icon={GraduationCap}
-            color="var(--neon-red)"
-            people={staffCoordinators}
-            cardRef={card1Ref as React.RefObject<HTMLDivElement>}
-          />
-          <CoordCard
-            title="STUDENT COORDINATORS"
-            icon={UserCircle}
-            color="var(--neon-blue)"
-            people={studentCoordinators}
-            cardRef={card2Ref as React.RefObject<HTMLDivElement>}
-          />
+          <StaffCard cardRef={card1Ref as React.RefObject<HTMLDivElement>} />
+          <StudentCard cardRef={card2Ref as React.RefObject<HTMLDivElement>} />
         </div>
       </div>
     </section>

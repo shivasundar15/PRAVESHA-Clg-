@@ -114,6 +114,11 @@ const Footer: React.FC = () => (
               <Phone size={16} color="var(--neon-red)" />
               +91 7356666091 (Ananya S)
             </a>
+            <a href="tel:+919486055560"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              <Phone size={16} color="var(--neon-blue)" />
+              +91 9486055560 (Aditya Anabayan B)
+            </a>
           </div>
         </div>
 

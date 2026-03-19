@@ -89,7 +89,7 @@ const Hero: React.FC = () => {
             <div ref={chipsRef} style={{ opacity: 0, display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem' }}>
               {[
                 { icon: <Calendar size={18} color="var(--neon-red)" />, label: 'DATE',  value: 'APRIL 09, 2026' },
-                { icon: <Award    size={18} color="var(--neon-blue)"/>, label: 'PRIZE', value: 'CASH PRIZES'    },
+                { icon: <Award    size={18} color="var(--neon-blue)"/>, label: 'PRIZE', value: '₹1 LAKH+ CASH PRIZE' },
               ].map(item => (
                 <div key={item.label} style={{
                   display: 'flex', alignItems: 'center', gap: '0.6rem',
