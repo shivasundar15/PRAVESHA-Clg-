@@ -39,7 +39,7 @@ const ComboEventDashboard: React.FC = () => {
   }, []);
 
   // Google Form URL placeholder (Update this string when you have the real link)
-  const GOOGLE_FORM_URL = 'https://forms.gle/your-link-here';
+  const GOOGLE_FORM_URL = 'https://forms.gle/qLacCgJgH1axd9f47';
 
   return (
     <section id="combo" ref={sectionRef} style={{ padding: '6rem 0', position: 'relative' }}>

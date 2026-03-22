@@ -12,7 +12,7 @@ const links = [
 ];
 
 // Registration URL — update when form goes live
-const REGISTER_URL = 'https://forms.gle/example'; // ← replace with actual form URL
+const REGISTER_URL = 'https://forms.gle/qLacCgJgH1axd9f47'; // ← replace with actual form URL
 
 import logoImage from '../assets/pravesha-logo.png';
 

@@ -392,11 +392,11 @@ const EventModal = ({ event, onClose }: { event: Event; onClose: () => void }) =
 
         {/* Register button -- unchanged */}
         <a
-          href="https://forms.gle/your-registration-link"
+          href="https://forms.gle/qLacCgJgH1axd9f47"
           target="_blank"
           rel="noreferrer"
           className="btn btn-primary"
-          style={{ width: '100%', justifyContent: 'center', display: 'flex', boxSizing: 'border-box', background: `linear-gradient(135deg, ${event.color === '#a855f7' ? '#a855f7, #7c3aed' : '#ff2a2a, #cc0000'})` }}
+          style={{ width: '100%', justifyContent: 'center', display: 'flex', boxSizing: 'border-box', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.4, background: `linear-gradient(135deg, ${event.color === '#a855f7' ? '#a855f7, #7c3aed' : '#ff2a2a, #cc0000'})` }}
         >
           <ExternalLink size={16} /> Register for {event.title}
         </a>
