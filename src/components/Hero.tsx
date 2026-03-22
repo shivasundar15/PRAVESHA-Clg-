@@ -4,8 +4,6 @@ import { Zap, Calendar, Award, ChevronDown } from 'lucide-react';
 import { smoothScrollTo } from '../utils/smoothScroll';
 import themeImage from '../assets/hero.png';
 import CountdownTimer from './CountdownTimer';
-import HeroScene from './HeroScene';
-
 const Hero: React.FC = () => {
 
   const tagRef       = useRef<HTMLSpanElement>(null);
@@ -49,7 +47,7 @@ const Hero: React.FC = () => {
       <div className="scan-line" />
 
       <div className="container" style={{ position: 'relative', zIndex: 2, width: '100%' }}>
-        <div className="hero-grid-2col">
+        <div className="hero-content">
 
           {/* ── LEFT: Text ─────────────────────────────────────────────────── */}
           <div style={{ maxWidth: '700px' }}>
@@ -70,10 +68,7 @@ const Hero: React.FC = () => {
               NATIONAL LEVEL<br />
               SYMPOSIUM<br />
               <span className="glitch" data-text="PRAVESHA" style={{ color: 'var(--neon-red)' }}>PRAVESHA</span><br />
-              <span style={{
-                background: 'linear-gradient(135deg,var(--neon-blue),#7dd3fc)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-              }}>2K26</span>
+              <span className="glitch" data-text="2K26" style={{ color: 'var(--neon-blue)' }}>2K26</span>
             </h1>
 
             <p ref={paraRef} style={{
@@ -123,13 +118,6 @@ const Hero: React.FC = () => {
               <a href="https://instagram.com/PRAVESHA_2K26" target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ padding: '0.9rem 2rem' }}>
                 @PRAVESHA_2K26
               </a>
-            </div>
-          </div>
-
-          {/* ── RIGHT: 3D Neural Network Scene ─────────────────────────────── */}
-          <div className="hero-right-col">
-            <div className="hero-scene-wrapper">
-              <HeroScene />
             </div>
           </div>
 

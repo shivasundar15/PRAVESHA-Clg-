@@ -135,7 +135,7 @@ const Footer: React.FC = () => (
           &copy; 2026 Pravesha Symposium. All rights reserved.
         </span>
         <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          Made with <Heart size={14} color="var(--neon-red)" fill="var(--neon-red)" /> by CSE Dept, VISTAS
+          Made with <Heart size={14} color="var(--neon-red)" fill="var(--neon-red)" /> by $
         </span>
       </div>
 

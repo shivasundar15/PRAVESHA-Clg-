@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
 import Events from './components/Events';
+import ComboEventDashboard from './components/ComboEventDashboard';
 import Coordinators from './components/Coordinators';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
@@ -33,6 +34,7 @@ function App() {
         <Hero />
         <About />
         <Events />
+        <ComboEventDashboard />
         <Coordinators />
       </main>
       <Footer />
