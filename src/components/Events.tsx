@@ -5,7 +5,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   MonitorPlay, BrainCog, Presentation, Music,
   ArrowRight, X, CheckCircle2, ExternalLink,
-  Mic2, PenTool, Lightbulb, ImageIcon, Cpu, BookOpen, Trophy
+  Mic2, PenTool, Lightbulb, ImageIcon, Cpu, BookOpen, Trophy,
+  Compass, Paintbrush
 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -190,12 +191,12 @@ const nonTechnicalEvents: Event[] = [
     icon: Music,
     color: '#a855f7',
     desc: 'Showcase your talents in dance, music, or any performing art on the main stage. Do not exceed the given time limit or interrupt other performances.',
-    teamSize: '1-6 members',
+    teamSize: 'Max up to 8 members',
     duration: '5-8 min per team',
     venue: 'Open Air Stage',
     rules: [
-      'Participation: Individual or team of up to 6 members.',
-      'Performances can include dance, singing, mimicry, or any performing art.',
+      'Participation: Individual or team of max up to 8 members.',
+      'Allowed Performance Categories: Dancing, Singing, Rap, Beatboxing, Stand-up Comedy, Instrumental Music(except drums), Magic Tricks, Mimicry, Mime, Any unique creative performance.',
       'Vulgarity or offensive content will lead to immediate disqualification.',
       'Background music / tracks must be submitted 1 day before the event.',
       'Props are allowed but must be arranged by the participants themselves.',
@@ -286,6 +287,56 @@ const nonTechnicalEvents: Event[] = [
       'Relevance to Theme (Round 1) -- accuracy of interpretation and subject matter.',
       'Confidence & Communication (Round 2) -- presentation skills during Q&A.',
       'Depth of Understanding (Round 2) -- subject knowledge and design choices.',
+    ],
+  },
+  {
+    title: 'CREW & CLUE',
+    icon: Compass,
+    color: '#a855f7',
+    desc: 'A campus-based hunt designed to test problem-solving, teamwork, and critical thinking skills. Navigate through locations, decode clues, and unlock the vault.',
+    teamSize: '3-4 members',
+    duration: 'Until Vault Unlocked',
+    venue: 'Campus Wide',
+    rules: [
+      'Each team must consist of 3-4 participants.',
+      'Participants must bring their ID cards.',
+      'Teams must register before the event begins.',
+      'Teams must solve clues in the correct order. Phones and internet usage are prohibited.',
+      'Clues and materials must not be damaged.',
+      'Any cheating will result in disqualification.',
+      'Volunteers verify puzzle answers, manage stations, and enforce rules. Their decisions will be final.',
+    ],
+    judgingCriteria: [
+      'The project will be evaluated based on its innovation and contribution, particularly its relevance to Sustainable Development Goals (SDGs).',
+      'The presentation skills, including clarity, structure, and organization of the PPT, will be evaluated.',
+      'The work will be assessed for originality, ensuring plagiarism is within acceptable limits.',
+      'Judges decision will be final and binding.',
+    ],
+  },
+  {
+    title: 'PIXEL FACEFEST',
+    icon: Paintbrush,
+    color: '#a855f7',
+    desc: 'A creative platform to visually represent technological concepts through artistic expression on the face. Face painting activity followed by a showcase.',
+    teamSize: '2 members',
+    duration: '60 minutes',
+    venue: 'Open Air Stage',
+    rules: [
+      'The event is open to teams of 2 members (artist and model).',
+      'Each team will be given 60 minutes to create your model.',
+      'Only face painting is permitted; the use of external props is not allowed.',
+      'Participants must bring their own materials.',
+      'The design must clearly reflect a Computer Science or technology-based theme (e.g., AI, circuits, robotics).',
+      'Participants must complete and present their work within the allotted time.',
+      'All participants must adhere to the instructions given by the event coordinators.',
+      'Judges decision will be final and binding.',
+    ],
+    judgingCriteria: [
+      'Creativity and Originality - Evaluates the uniqueness of the vision and fresh perspective.',
+      'Theme Relevance - Measures how effectively the work connects to the specific topic and prompt.',
+      'Detailing and Execution - Assesses the technical quality, craftsmanship, and the level of care taken.',
+      'Innovation in Concept - Focuses on whether the approach uses clever, forward-thinking solutions.',
+      'Presentation and Explanation - Examines how well the participant communicates their process.',
     ],
   },
 ];
