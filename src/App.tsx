@@ -15,7 +15,7 @@ function App() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      {/* ── Cinematic Loading Overlay ──────────────────── */}
+      {/* ── Cinematic Loading Overlay --──────────────────── */}
       {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
 
       {/* ── Custom Electric Cursor (desktop only) ──────── */}
