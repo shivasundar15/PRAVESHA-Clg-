@@ -191,7 +191,7 @@ const nonTechnicalEvents: Event[] = [
     icon: Music,
     color: '#a855f7',
     desc: 'Showcase your talents in dance, music, or any performing art on the main stage. Do not exceed the given time limit or interrupt other performances.',
-    teamSize: 'Max up to 8 members',
+    teamSize: 'Max up to 4 members',
     duration: '5-8 min per team',
     venue: 'Open Air Stage',
     rules: [
